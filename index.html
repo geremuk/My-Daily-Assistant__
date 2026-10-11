@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#173b35">
+<meta name="description" content="Your personal daily planner, routines, tasks and reminders.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>My Daily Assistant</title>
+<style>
+:root{--bg:#f4f6f2;--card:#fff;--ink:#182b27;--muted:#64736d;--brand:#173b35;--accent:#c8ef8b;--line:#e1e8e1;--danger:#a13b35}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:var(--brand);color:white;padding:calc(18px + env(safe-area-inset-top)) 18px 20px;border-radius:0 0 24px 24px}
+.headrow{display:flex;justify-content:space-between;align-items:center;gap:12px}h1{font-size:1.4rem;margin:0}header p{margin:5px 0 0;color:#d6e6df;font-size:.9rem}.clock{font-weight:700;font-variant-numeric:tabular-nums;font-size:1.1rem}
+main{max-width:820px;margin:0 auto;padding:16px 14px 100px}.tabs{display:flex;gap:7px;overflow:auto;padding:2px 0 13px;position:sticky;top:0;background:var(--bg);z-index:2}
+.tab{border:1px solid var(--line);background:white;color:var(--ink);border-radius:999px;padding:9px 14px;white-space:nowrap;font-weight:650}.tab.active{background:var(--brand);color:white;border-color:var(--brand)}
+.panel{display:none}.panel.active{display:block}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:13px;box-shadow:0 2px 8px #173b3508}
+h2{font-size:1.08rem;margin:0 0 12px}h3{font-size:1rem;margin:0 0 5px}.muted{color:var(--muted);font-size:.9rem}.hero{background:var(--accent);border:0}.hero p{margin:4px 0}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.stat{background:#ffffffa8;border-radius:12px;padding:10px}.stat strong{display:block;font-size:1.35rem}.row{display:flex;align-items:center;gap:9px}.between{justify-content:space-between}.grow{flex:1;min-width:0}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:#fff;border:1px solid #ccd7ce;border-radius:11px;padding:11px;margin:4px 0 10px}textarea{min-height:76px;resize:vertical}label{font-size:.87rem;font-weight:650;display:block}button{font:inherit;cursor:pointer}.btn{border:0;border-radius:11px;padding:10px 13px;background:var(--brand);color:white;font-weight:700}.btn.light{background:#edf3ec;color:var(--brand)}.btn.danger{background:#fbe9e7;color:var(--danger)}.btn.small{padding:6px 9px;font-size:.85rem}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.formgrid .full{grid-column:1/-1}
+.item{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}.item:last-child{border-bottom:0}.item input[type=checkbox]{width:20px;height:20px;margin:2px 0;accent-color:var(--brand);flex:none}.item .itemtitle{font-weight:650;overflow-wrap:anywhere}.done .itemtitle{text-decoration:line-through;color:var(--muted)}.pill{display:inline-block;background:#edf3ec;color:#31564a;border-radius:99px;padding:3px 8px;font-size:.75rem;margin-top:4px}.empty{color:var(--muted);padding:12px 0}.notice{background:#fff7dd;border:1px solid #f0dfa3;border-radius:12px;padding:12px;font-size:.88rem;margin-bottom:13px}.checkin{display:grid;gap:8px}.checkin label{font-weight:500}.checkin input[type=checkbox]{width:auto;display:inline-block;margin-right:7px}
+footer{text-align:center;color:var(--muted);font-size:.78rem;padding:15px}
+@media(min-width:650px){main{padding-top:22px}.dashboard{display:grid;grid-template-columns:1fr 1fr;gap:13px}.dashboard .card{margin:0}.wide{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<header>
+ <div class="headrow"><div><h1>My Daily Assistant</h1><p id="dateLine">Your day, made clearer.</p></div><div class="clock" id="clock">--:--</div></div>
+</header>
+<main>
+ <nav class="tabs" aria-label="Main navigation">
+  <button class="tab active" data-tab="today">Today</button><button class="tab" data-tab="tasks">Tasks</button><button class="tab" data-tab="calendar">Calendar</button><button class="tab" data-tab="routines">Routines</button><button class="tab" data-tab="checkins">Check-ins</button><button class="tab" data-tab="settings">Settings</button>
+ </nav>
+ <section id="today" class="panel active">
+  <div class="card hero">
+   <h2 id="greeting">Good day!</h2><p id="todayMessage">Pick your priorities and make room for breaks.</p>
+   <div class="stats"><div class="stat"><strong id="taskCount">0</strong><span>Open tasks</span></div><div class="stat"><strong id="eventCount">0</strong><span>Upcoming</span></div><div class="stat"><strong id="doneCount">0</strong><span>Completed</span></div></div>
+  </div>
+  <div class="notice"><strong>Reminder note:</strong> This web app can show reminders while open and request browser notifications. It cannot reliably ring alarms or send scheduled notifications when fully closed on every Android/browser setup. Use your phone’s Clock app for the guaranteed 6:00 AM alarm.</div>
+  <div class="dashboard">
+   <div class="card"><div class="row between"><h2>Today's priorities</h2><button class="btn small light" onclick="switchTab('tasks')">Manage</button></div><div id="todayTasks"></div></div>
+   <div class="card"><h2>Next events & deadlines</h2><div id="todayEvents"></div><button class="btn light" style="margin-top:8px" onclick="switchTab('calendar')">Add an event</button></div>
+   <div class="card"><h2>Daily rhythm</h2><div class="item"><span>⏰</span><div class="grow"><div class="itemtitle">6:00 AM — Wake up</div><div class="muted">Set a recurring alarm in Android Clock.</div></div></div><div class="item"><span>🌙</span><div class="grow"><div class="itemtitle">10:30 PM — Wind down</div><div class="muted">Aim to be ready for bed by 11:00 PM.</div></div></div><button class="btn light" onclick="switchTab('routines')">Track routines</button></div>
+   <div class="card"><h2>Quick add task</h2><form id="quickTaskForm"><label for="quickTitle">Task</label><input id="quickTitle" required placeholder="e.g. Review lecture notes"><div class="formgrid"><div><label for="quickDue">Due date</label><input id="quickDue" type="date"></div><div><label for="quickPriority">Priority</label><select id="quickPriority"><option>Medium</option><option>High</option><option>Low</option></select></div></div><button class="btn" type="submit">Add task</button></form></div>
+  </div>
+ </section>
+ <section id="tasks" class="panel">
+  <div class="card"><h2>Add a task</h2><form id="taskForm"><label for="taskTitle">Task name</label><input id="taskTitle" required placeholder="What do you need to do?"><div class="formgrid"><div><label for="taskDue">Due date</label><input id="taskDue" type="date"></div><div><label for="taskPriority">Priority</label><select id="taskPriority"><option>Medium</option><option>High</option><option>Low</option></select></div><div><label for="taskCategory">Area</label><select id="taskCategory"><option>Work / Study</option><option>Exercise</option><option>Personal</option><option>Learning</option><option>Appointment</option></select></div><div><label for="taskReminder">Reminder time</label><input id="taskReminder" type="datetime-local"></div></div><button class="btn">Save task</button></form></div>
+  <div class="card"><div class="row between"><h2>Your tasks</h2><select id="taskFilter" style="width:auto;margin:0"><option value="open">Open tasks</option><option value="all">All tasks</option><option value="done">Completed</option></select></div><div id="taskList"></div></div>
+ </section>
+ <section id="calendar" class="panel">
+  <div class="card"><h2>Add event or deadline</h2><form id="eventForm"><label for="eventTitle">Event name</label><input id="eventTitle" required placeholder="e.g. Project submission"><div class="formgrid"><div><label for="eventDate">Date</label><input id="eventDate" type="date" required></div><div><label for="eventTime">Time</label><input id="eventTime" type="time"></div><div class="full"><label for="eventNotes">Notes (optional)</label><textarea id="eventNotes" placeholder="Location, preparation, details…"></textarea></div></div><button class="btn">Save event</button></form></div>
+  <div class="card"><h2>Upcoming events & deadlines</h2><div id="eventList"></div></div>
+ </section>
+ <section id="routines" class="panel">
+  <div class="card"><h2>Daily routines</h2><p class="muted">Tick these off each day. Progress resets for the new local date.</p><div id="routineList"></div><form id="routineForm"><label for="routineTitle">Add your own routine</label><div class="row"><input id="routineTitle" required placeholder="e.g. Read for 20 minutes"><button class="btn">Add</button></div></form></div>
+  <div class="card"><h2>Suggested rhythm</h2><div class="item"><div class="grow"><div class="itemtitle">6:00 AM · Wake up</div><div class="muted">Water, wash, and a calm start.</div></div></div><div class="item"><div class="grow"><div class="itemtitle">6:30 AM · Exercise</div><div class="muted">Choose a realistic workout or walk.</div></div></div><div class="item"><div class="grow"><div class="itemtitle">8:00 AM · Focus block</div><div class="muted">Work or study on one important thing.</div></div></div><div class="item"><div class="grow"><div class="itemtitle">5:00 PM · Learn something</div><div class="muted">Practice a skill in a short session.</div></div></div><div class="item"><div class="grow"><div class="itemtitle">8:30 PM · Review and wind down</div><div class="muted">Check tomorrow, reduce screens, prepare for bed.</div></div></div></div>
+ </section>
+ <section id="checkins" class="panel">
+  <div class="card"><h2>Morning check-in</h2><p class="muted">Choose what matters most today.</p><form id="morningForm"><label for="morningMood">How are you feeling?</label><select id="morningMood"><option>Ready to go</option><option>Okay, taking it steady</option><option>Tired — keep it gentle</option><option>Stressed — simplify today</option></select><label for="morningTop">Top priority</label><textarea id="morningTop" placeholder="The one thing that would make today successful…"></textarea><label for="morningNote">Other notes</label><textarea id="morningNote" placeholder="Exercise, appointments, what to remember…"></textarea><button class="btn">Save morning check-in</button></form><p id="morningSaved" class="muted"></p></div>
+  <div class="card"><h2>Evening review</h2><form id="eveningForm"><label for="eveningWin">What went well today?</label><textarea id="eveningWin" placeholder="Small wins count…"></textarea><label for="eveningCarry">What needs to move to tomorrow?</label><textarea id="eveningCarry" placeholder="Keep the plan realistic…"></textarea><label for="eveningNote">Anything to prepare before bed?</label><textarea id="eveningNote" placeholder="Bag, clothes, workspace, etc."></textarea><button class="btn">Save evening review</button></form><p id="eveningSaved" class="muted"></p></div>
+ </section>
+ <section id="settings" class="panel">
+  <div class="card"><h2>Daily assistant settings</h2><p class="muted">Time zone: Africa/Addis_Ababa (East Africa Time, UTC+3).</p><div class="formgrid"><div><label for="wakeTime">Wake-up time</label><input id="wakeTime" type="time" value="06:00"></div><div><label for="bedTime">Bedtime</label><input id="bedTime" type="time" value="23:00"></div></div><button class="btn" id="saveSettings">Save schedule</button><hr style="border:0;border-top:1px solid var(--line);margin:18px 0"><h3>Notifications</h3><p class="muted">Allow notifications to see reminders while supported by your browser. Reminder alerts are checked while this app is open.</p><button class="btn light" id="enableNotifications">Enable browser notifications</button><p id="notificationStatus" class="muted"></p><hr style="border:0;border-top:1px solid var(--line);margin:18px 0"><h3>Install on Android</h3><ol class="muted"><li>Host these app files on an HTTPS website.</li><li>Open that website in Chrome on Android.</li><li>Tap the browser menu (⋮), then “Install app” or “Add to Home screen”.</li></ol><p class="muted">This package is not yet published or hosted online. The files are provided for you to host or deploy.</p><button class="btn danger" id="exportData">Export my data</button> <button class="btn danger" id="clearData">Clear all app data</button></div>
+ </section>
+ <footer>My Daily Assistant · Your data stays in this browser on this device unless you export it.</footer>
+</main>
+<script>
+const KEY='myDailyAssistant.v1';
+const defaultRoutines=[{id:'water',title:'Drink water and get ready'},{id:'move',title:'Exercise or take a walk'},{id:'focus',title:'Complete a focused work/study block'},{id:'learn',title:'Practice a skill'},{id:'review',title:'Review tomorrow and wind down'}];
+let data={tasks:[],events:[],routines:defaultRoutines,checks:{},settings:{wake:'06:00',bed:'23:00'}};
+function load(){try{const x=JSON.parse(localStorage.getItem(KEY));if(x)data={...data,...x,settings:{...data.settings,...(x.settings||{})}}}catch(e){}}
+function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function localDate(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function switchTab(id){document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===id));document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));window.scrollTo({top:0,behavior:'smooth'})}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+function taskMarkup(t){return `<div class="item ${t.done?'done':''}"><input aria-label="Mark task complete" type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${t.id}',this.checked)"><div class="grow"><div class="itemtitle">${escapeHtml(t.title)}</div><div class="muted">${escapeHtml(t.category||'Personal')}${t.due?' · Due '+escapeHtml(t.due):''}${t.reminder?' · Reminder '+escapeHtml(t.reminder.replace('T',' ')):''}</div><span class="pill">${escapeHtml(t.priority||'Medium')}</span></div><button class="btn small danger" onclick="deleteTask('${t.id}')">Delete</button></div>`}
+function eventMarkup(e){return `<div class="item"><div style="font-size:1.2rem">📅</div><div class="grow"><div class="itemtitle">${escapeHtml(e.title)}</div><div class="muted">${escapeHtml(e.date)}${e.time?' · '+escapeHtml(e.time):''}${e.notes?' · '+escapeHtml(e.notes):''}</div></div><button class="btn small danger" onclick="deleteEvent('${e.id}')">Delete</button></div>`}
+function render(){
+ const now=new Date(),today=localDate();document.getElementById('clock').textContent=now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});document.getElementById('dateLine').textContent=now.toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'})+' · Africa/Addis_Ababa';
+ const h=now.getHours();document.getElementById('greeting').textContent=h<12?'Good morning!':h<18?'Good afternoon!':'Good evening!';
+ const open=data.tasks.filter(t=>!t.done),done=data.tasks.filter(t=>t.done);document.getElementById('taskCount').textContent=open.length;document.getElementById('doneCount').textContent=done.length;
+ const ev=data.events.filter(e=>e.date>=today).sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));document.getElementById('eventCount').textContent=ev.length;
+ document.getElementById('todayTasks').innerHTML=open.filter(t=>!t.due||t.due<=today).slice(0,5).map(taskMarkup).join('')||'<div class="empty">No urgent tasks. Add a priority or enjoy the breathing room.</div>';
+ document.getElementById('todayEvents').innerHTML=ev.slice(0,4).map(eventMarkup).join('')||'<div class="empty">No upcoming events. Add a deadline or appointment.</div>';
+ const filter=document.getElementById('taskFilter').value;let ts=[...data.tasks].sort((a,b)=>({High:0,Medium:1,Low:2}[a.priority]??1)-({High:0,Medium:1,Low:2}[b.priority]??1));if(filter==='open')ts=ts.filter(t=>!t.done);if(filter==='done')ts=ts.filter(t=>t.done);document.getElementById('taskList').innerHTML=ts.map(taskMarkup).join('')||'<div class="empty">Nothing here yet.</div>';
+ document.getElementById('eventList').innerHTML=ev.map(eventMarkup).join('')||'<div class="empty">No upcoming events.</div>';
+ const checks=data.checks[today]||{routines:[]};document.getElementById('routineList').innerHTML=data.routines.map(r=>`<div class="item"><input type="checkbox" ${checks.routines.includes(r.id)?'checked':''} onchange="toggleRoutine('${r.id}',this.checked)"><div class="grow"><div class="itemtitle">${escapeHtml(r.title)}</div></div>${!['water','move','focus','learn','review'].includes(r.id)?`<button class="btn small danger" onclick="deleteRoutine('${r.id}')">×</button>`:''}</div>`).join('');
+ document.getElementById('wakeTime').value=data.settings.wake;document.getElementById('bedTime').value=data.settings.bed;
+ const ck=data.checks[today]||{};document.getElementById('morningMood').value=ck.mood||'Ready to go';document.getElementById('morningTop').value=ck.top||'';document.getElementById('morningNote').value=ck.morningNote||'';document.getElementById('eveningWin').value=ck.win||'';document.getElementById('eveningCarry').value=ck.carry||'';document.getElementById('eveningNote').value=ck.eveningNote||'';
+ document.getElementById('morningSaved').textContent=ck.morningSaved?'Saved today ✓':'';document.getElementById('eveningSaved').textContent=ck.eveningSaved?'Saved today ✓':'';
+}
+function toggleTask(id,v){const t=data.tasks.find(t=>t.id===id);if(t)t.done=v;save()}function deleteTask(id){data.tasks=data.tasks.filter(t=>t.id!==id);save()}function deleteEvent(id){data.events=data.events.filter(e=>e.id!==id);save()}
+function toggleRoutine(id,v){const d=localDate();data.checks[d]=data.checks[d]||{routines:[]};let a=data.checks[d].routines||[];data.checks[d].routines=v?[...new Set([...a,id])]:a.filter(x=>x!==id);data.checks[d].routines=a;save()}
+function deleteRoutine(id){data.routines=data.routines.filter(r=>r.id!==id);save()}
+function addTask(title,due,priority,category,reminder){data.tasks.push({id:uid(),title:title.trim(),due,priority,category,reminder,done:false});save()}
+document.getElementById('taskForm').addEventListener('submit',e=>{e.preventDefault();addTask(taskTitle.value,taskDue.value,taskPriority.value,taskCategory.value,taskReminder.value);e.target.reset()});
+document.getElementById('quickTaskForm').addEventListener('submit',e=>{e.preventDefault();addTask(quickTitle.value,quickDue.value,quickPriority.value,'Personal','');e.target.reset()});
+document.getElementById('taskFilter').addEventListener('change',render);
+document.getElementById('eventForm').addEventListener('submit',e=>{e.preventDefault();data.events.push({id:uid(),title:eventTitle.value.trim(),date:eventDate.value,time:eventTime.value,notes:eventNotes.value.trim()});save();e.target.reset()});
+document.getElementById('routineForm').addEventListener('submit',e=>{e.preventDefault();data.routines.push({id:uid(),title:routineTitle.value.trim()});save();e.target.reset()});
+document.getElementById('morningForm').addEventListener('submit',e=>{e.preventDefault();const d=localDate();data.checks[d]=data.checks[d]||{routines:[]};Object.assign(data.checks[d],{mood:morningMood.value,top:morningTop.value,morningNote:morningNote.value,morningSaved:true});save()});
+document.getElementById('eveningForm').addEventListener('submit',e=>{e.preventDefault();const d=localDate();data.checks[d]=data.checks[d]||{routines:[]};Object.assign(data.checks[d],{win:eveningWin.value,carry:eveningCarry.value,eveningNote:eveningNote.value,eveningSaved:true});save()});
+document.getElementById('saveSettings').addEventListener('click',()=>{data.settings={wake:wakeTime.value||'06:00',bed:bedTime.value||'23:00'};save();alert('Schedule saved. For dependable alarms, set them in Android Clock.')});
+document.getElementById('enableNotifications').addEventListener('click',async()=>{if(!('Notification'in window)){notificationStatus.textContent='This browser does not support notifications.';return}const p=await Notification.requestPermission();notificationStatus.textContent=p==='granted'?'Notifications enabled where your browser supports them. Keep the app open for reminder checks.':'Notifications were not enabled.'});
+document.getElementById('exportData').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='my-daily-assistant-data.json';a.click();URL.revokeObjectURL(a.href)});
+document.getElementById('clearData').addEventListener('click',()=>{if(confirm('Delete all tasks, events, check-ins, and custom routines stored by this app?')){localStorage.removeItem(KEY);location.reload()}});
+let alerted=new Set();function checkReminders(){if(!('Notification'in window)||Notification.permission!=='granted')return;const now=new Date(),stamp=now.getFullYear()+'-'+now.getMonth()+'-'+now.getDate()+'-'+now.getHours()+'-'+now.getMinutes();for(const t of data.tasks){if(t.reminder&&!t.done){const due=new Date(t.reminder);if(Math.abs(now-due)<35000&&!alerted.has(t.id+stamp)){new Notification('My Daily Assistant',{body:'Reminder: '+t.title,icon:'icon.svg'});alerted.add(t.id+stamp)}}}}
+load();render();setInterval(()=>{render();checkReminders()},30000);
+if('serviceWorker'in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>
